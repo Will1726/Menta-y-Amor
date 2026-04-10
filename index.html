@@ -554,10 +554,36 @@ function entrar(){
 
     firebase.auth().signInWithEmailAndPassword(correo, pass)
     .then(userCredential => {
-    usuarioActual = userCredential.user.email;
-    mostrarToast("Bienvenido");
-    grecaptcha.reset();
-})
+        usuarioActual = userCredential.user.email;
+        mostrarToast("Bienvenido 👋");
+        grecaptcha.reset();
+    })
+    .catch(error => {
+
+        console.log("LOGIN ERROR:", error.code);
+
+        // SI FALLA, INTENTA CREAR CUENTA DIRECTAMENTE
+        firebase.auth().createUserWithEmailAndPassword(correo, pass)
+        .then(userCredential => {
+            usuarioActual = userCredential.user.email;
+            mostrarToast("Cuenta creada 🎉 Bienvenido");
+            grecaptcha.reset();
+        })
+        .catch(err => {
+            console.log("REGISTER ERROR:", err.code);
+
+            if(err.code === "auth/email-already-in-use"){
+                mostrarToast("Contraseña incorrecta o usuario ya existe");
+            }
+            else if(err.code === "auth/weak-password"){
+                mostrarToast("Contraseña muy débil");
+            }
+            else{
+                mostrarToast(err.message);
+            }
+        });
+    });
+}
     .catch(error => {
     console.log(error.code, error.message);
 
