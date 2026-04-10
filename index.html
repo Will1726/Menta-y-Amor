@@ -200,6 +200,55 @@ button:hover{
     max-width:500px;
     border-radius:10px;
 }
+.likes{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:5px;
+}
+
+.likes button{
+    background:#eee;
+    color:#333;
+    border-radius:50%;
+    padding:5px 10px;
+}
+
+.likes button:hover{
+    background:#2ecc71;
+    color:white;
+}
+.like-btn{
+    background:#eafaf1;
+    color:#27ae60;
+    border:none;
+    padding:5px 10px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    transition:0.3s;
+}
+
+.like-btn:hover{
+    background:#2ecc71;
+    color:white;
+}
+
+.like-btn.liked{
+    background:#27ae60;
+    color:white;
+}
+
+/* 🔥 animación */
+@keyframes pop{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.3);}
+    100%{transform:scale(1);}
+}
+
+.like-anim{
+    animation:pop 0.3s ease;
+}
 .review img{
     width:40px;
     height:40px;
@@ -208,7 +257,38 @@ button:hover{
 .estrellas{
     color:gold;
 }
+.like-btn{
+    background:#ffecec;
+    color:#e74c3c;
+    border:none;
+    padding:6px 12px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:14px;
+    transition:0.3s;
+}
 
+.like-btn:hover{
+    background:#ffb3b3;
+}
+
+/* ❤️ cuando ya dio like */
+.like-btn.liked{
+    background:#e74c3c;
+    color:white;
+    box-shadow:0 0 10px #e74c3c;
+}
+
+/* 💥 animación */
+@keyframes likePop{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.4);}
+    100%{transform:scale(1);}
+}
+
+.like-anim{
+    animation:likePop 0.3s ease;
+}
 /* MODAL TOAST */
 .toast{
     position:fixed;
@@ -228,6 +308,30 @@ button:hover{
 .toast.show{
     opacity:1;
     bottom:50px;
+}
+.respuestas{
+    margin-top:10px;
+    text-align:left;
+    font-size:13px;
+}
+
+.respuestas p{
+    background:#ecfdf5;
+    padding:5px;
+    border-radius:6px;
+    margin:3px 0;
+}
+.slider{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+}
+
+.slider img{
+    width:200px;
+    border-radius:10px;
+    transition:0.3s;
 }
 </style>
 </head>
@@ -254,7 +358,8 @@ button:hover{
 <h3>Aromatizante 30ml</h3>
 <img src="producto30ml.png">
 <p>$50 MXN</p>
-<button onclick="verProducto('Aromatizante 30ml',50,'producto30ml.png')">Ver producto</button>
+onclick="verProducto('Aromatizante 30ml',50,['img1.png','img2.png','img3.png','img4.png'])">Ver producto
+</button>
 <button onclick="agregar('Aromatizante 30ml',50)">Agregar</button>
 </div>
 
@@ -293,8 +398,11 @@ button:hover{
 <div class="modalProducto" id="modalProducto">
     <div class="modalContenido">
         <h2 id="modalNombre"></h2>
-        <img id="modalImagen">
-        <p id="modalPrecio"></p>
+        <div class="slider">
+    <button onclick="anterior()">⬅️</button>
+    <img id="modalImagen">
+    <button onclick="siguiente()">➡️</button>
+</div>        <p id="modalPrecio"></p>
         <button onclick="cerrarModalProducto()">Cerrar</button>
     </div>
 </div>
@@ -333,22 +441,25 @@ if(!usuarios["willduran620@gmail.com"]){
 }
 
 // LOGIN
+usuarioActual = localStorage.getItem("sesion");
+if(usuarioActual){
+    document.getElementById("login").style.display="none";
+}
 function entrar(){
     let correo=document.getElementById("correo").value;
     let pass=document.getElementById("password").value;
-    let usuarios=JSON.parse(localStorage.getItem("usuarios"))||{};
-    if(usuarios[correo]){
-        if(usuarios[correo]!==pass){
-            mensaje.innerText="Contraseña incorrecta"; return;
-        }
-    }else{
-        usuarios[correo]=pass;
-        localStorage.setItem("usuarios",JSON.stringify(usuarios));
+
+    if(correo=="" || pass==""){
+        mostrarToast("Completa los datos");
+        return;
     }
+
+    // guardamos solo sesión
     usuarioActual=correo;
+    localStorage.setItem("sesion", correo);
+
     login.style.display="none";
 }
-
 // CARRITO
 function agregar(nombre,precio){
     carrito.push({nombre,precio});
@@ -385,13 +496,34 @@ function mostrarToast(txt){
 }
 
 // VER PRODUCTO
-function verProducto(nombre, precio, img){
-    document.getElementById("modalNombre").innerText=nombre;
-    document.getElementById("modalPrecio").innerText="$"+precio;
-    document.getElementById("modalImagen").src=img;
-    let modal=document.getElementById("modalProducto");
-    modal.style.display="flex";
-    setTimeout(()=>modal.classList.add("show"),50); // animación entrada
+let imagenesProducto = [];
+let indiceActual = 0;
+function verProducto(nombre, precio, imgs){
+    imagenesProducto = imgs;
+    indiceActual = 0;
+
+    document.getElementById("modalNombre").innerText = nombre;
+    document.getElementById("modalPrecio").innerText = "$" + precio;
+    document.getElementById("modalImagen").src = imagenesProducto[indiceActual];
+
+    let modal = document.getElementById("modalProducto");
+    modal.style.display = "flex";
+    setTimeout(()=>modal.classList.add("show"),50);
+}
+function siguiente(){
+    indiceActual++;
+    if(indiceActual >= imagenesProducto.length){
+        indiceActual = 0;
+    }
+    document.getElementById("modalImagen").src = imagenesProducto[indiceActual];
+}
+
+function anterior(){
+    indiceActual--;
+    if(indiceActual < 0){
+        indiceActual = imagenesProducto.length - 1;
+    }
+    document.getElementById("modalImagen").src = imagenesProducto[indiceActual];
 }
 function cerrarModalProducto(){
     let modal=document.getElementById("modalProducto");
@@ -448,25 +580,27 @@ function avatarCorreo(correo){
 }
 
 
-// 🔥 SOLO DEJAMOS ESTA FUNCIÓN (Firebase)
+//  SOLO DEJAMOS ESTA FUNCIÓN (Firebase)
 function cargarReviews(){
 
 let contenedor=document.getElementById("listaReviews");
-contenedor.innerHTML="";
 
 db.collection("reviews")
 .orderBy("fecha","desc")
-.get()
-.then(snapshot=>{
+.onSnapshot(snapshot=>{
+
+contenedor.innerHTML="";
 
 snapshot.forEach(doc=>{
 
 let r=doc.data();
 let estrellas="⭐".repeat(r.estrellas);
+let likes = r.likes || 0;
+let puedeBorrar = (usuarioActual === r.correo || usuarioActual === "willduran620@gmail.com");
 
 contenedor.innerHTML+=`
 
-<div class="review">
+<div class="review" id="review-${doc.id}">
 
 <img src="${avatarCorreo(r.correo)}">
 
@@ -477,6 +611,30 @@ contenedor.innerHTML+=`
 <div class="estrellas">${estrellas}</div>
 
 <p>${r.texto}</p>
+<div class="respuestas">
+${(r.respuestas || [])
+.sort((a,b)=>a.fecha-b.fecha)
+.map(resp =>`
+<p>
+<strong style="color:${resp.usuario.includes('Menta y Amor') ? '#27ae60' : '#000'}">
+${resp.usuario}:
+</strong> ${resp.texto}
+</p>
+`).join("")}
+</div>
+
+<div>
+<input id="resp-${doc.id}" placeholder="Responder...">
+<button onclick="responderReview('${doc.id}')">Responder</button>
+</div>
+
+<button id="like-${doc.id}" 
+class="like-btn ${r.likedBy && r.likedBy.includes(usuarioActual) ? 'liked' : ''}" 
+onclick="darLike('${doc.id}')">
+❤️ ${likes}
+</button>
+
+${puedeBorrar ? `<button onclick="animarBorrado('${doc.id}','${r.correo}')">Eliminar</button>` : ""}
 
 </div>
 
@@ -490,8 +648,124 @@ contenedor.innerHTML+=`
 
 }
 
+function borrarReview(id,correo){
 
-// 🔥 GUARDAR RESEÑA
+if(usuarioActual !== correo && usuarioActual !== "willduran620@gmail.com"){
+    mostrarToast("No puedes borrar esta reseña");
+    return;
+}
+
+let confirmar = confirm("¿Seguro que quieres eliminar esta reseña?");
+if(!confirmar) return;
+
+db.collection("reviews").doc(id).delete()
+.then(()=>{
+    mostrarToast("Reseña eliminada 🗑️");
+});
+
+}
+
+// 🔥 BORRAR CON ANIMACIÓN
+function animarBorrado(id,correo){
+
+if(usuarioActual !== correo && usuarioActual !== "willduran620@gmail.com"){
+    mostrarToast("No puedes borrar esta reseña");
+    return;
+}
+
+let confirmar = confirm("¿Eliminar reseña?");
+if(!confirmar) return;
+
+let elemento = document.getElementById("review-"+id);
+
+if(elemento){
+    elemento.style.transition="0.4s";
+    elemento.style.opacity="0";
+    elemento.style.transform="translateX(-50px)";
+}
+
+setTimeout(()=>{
+    db.collection("reviews").doc(id).delete()
+    .then(()=>{
+        mostrarToast("Reseña eliminada 🗑️");
+    });
+},400);
+
+}
+
+// LIKE (sin repetir)
+function darLike(id){
+
+let user = usuarioActual || "anonimo";
+let ref = db.collection("reviews").doc(id);
+
+ref.get().then(doc=>{
+    let data = doc.data();
+
+    if(data.likedBy && data.likedBy.includes(user)){
+        mostrarToast("Ya diste like");
+        return;
+    }
+
+    ref.update({
+        likes: (data.likes || 0) + 1,
+        likedBy: [...(data.likedBy || []), user]
+    });
+
+    let btn = document.getElementById("like-"+id);
+
+    if(btn){
+        btn.classList.add("like-anim");
+        btn.classList.add("liked");
+
+        setTimeout(()=>{
+            btn.classList.remove("like-anim");
+        },300);
+    }
+
+});
+}
+function responderReview(id){
+
+let input = document.getElementById("resp-"+id);
+let texto = input.value;
+
+// evitar respuestas vacías
+if(texto.trim() == ""){
+    mostrarToast("Escribe una respuesta");
+    return;
+}
+
+let ref = db.collection("reviews").doc(id);
+
+ref.get().then(doc=>{
+
+    // validar existencia
+    if(!doc.exists){
+        mostrarToast("La reseña ya no existe");
+        return;
+    }
+
+    let data = doc.data();
+
+    let nuevasRespuestas = data.respuestas || [];
+
+   nuevasRespuestas.push({
+    usuario: usuarioActual === "willduran620@gmail.com"
+        ? "Menta y Amor 🌿"
+        : (usuarioActual || "anonimo"),
+    texto: texto,
+    fecha: Date.now()
+});
+    ref.update({
+        respuestas: nuevasRespuestas
+    });
+
+    input.value="";
+});
+}
+
+// GUARDAR RESEÑA
 function guardarReview(){
 
 let nombre=document.getElementById("nombreReview").value;
@@ -501,36 +775,30 @@ let estrellas=document.getElementById("estrellas").value;
 let correo=usuarioActual || "anonimo";
 
 if(nombre=="" || texto==""){
-mostrarToast("Completa los campos");
-return;
+    mostrarToast("Completa los campos");
+    return;
 }
 
 db.collection("reviews").add({
-
-nombre:nombre,
-correo:correo,
-texto:texto,
-estrellas:Number(estrellas),
-fecha:Date.now()
-
+    nombre:nombre,
+    correo:correo,
+    texto:texto,
+    estrellas:Number(estrellas),
+    fecha:Date.now(),
+    likes:0,
+    likedBy:[],
+    respuestas:[] // IMPORTANTE
 })
 .then(()=>{
-
-document.getElementById("nombreReview").value="";
-document.getElementById("textoReview").value="";
-
-mostrarToast("Reseña publicada ⭐");
-
-cargarReviews();
-
+    document.getElementById("nombreReview").value="";
+    document.getElementById("textoReview").value="";
+    mostrarToast("Reseña publicada ⭐");
 });
 
 }
 
-
-// 🔥 CARGAR AL INICIO
+// CARGAR AL INICIO
 setTimeout(cargarReviews,1000);
-
 </script>
 </body>
 </html>
