@@ -410,6 +410,7 @@ button:hover{
     <div class="g-recaptcha" data-sitekey="6Lew57AsAAAAADgg1BsO6onCeTqDDhRM-DJThuK6"></div>
 
     <button type="submit">Entrar</button>
+<button type="button" onclick="loginGoogle()">Entrar con Google</button>
   </form>
 </div>
 
@@ -525,6 +526,25 @@ function esAdmin(){
 }
 
 // LOGIN
+function loginGoogle(){
+
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    firebase.auth().signInWithPopup(provider)
+    .then(result => {
+
+        usuarioActual = result.user.email;
+
+        mostrarToast("Bienvenido con Google");
+
+        document.getElementById("login").style.display = "none";
+
+    })
+    .catch(error => {
+        console.log(error);
+        mostrarToast("Error con Google");
+    });
+}
 firebase.auth().onAuthStateChanged(user => {
     if(user){
         usuarioActual = user.email;
@@ -582,24 +602,6 @@ function entrar(){
                 mostrarToast(err.message);
             }
         });
-    });
-}
-    .catch(error => {
-    console.log(error.code, error.message);
-
-        if(error.code === "auth/user-not-found"){
-            firebase.auth().createUserWithEmailAndPassword(correo, pass)
-            .then(userCredential => {
-                usuarioActual = userCredential.user.email;
-                mostrarToast("Cuenta creada 🎉");
-            });
-        } 
-        else if(error.code === "auth/wrong-password"){
-            mostrarToast("Contraseña incorrecta");
-        }
-        else{
-            mostrarToast(error.message);
-        }
     });
 }
 // CARRITO
