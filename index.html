@@ -10,8 +10,8 @@ body{
     font-family: Arial;
     margin:0;
     background: linear-gradient(135deg,#c8f7d4,#e9fff2);
+    background-attachment: fixed;
 }
-
 /* LOGIN */
 .login{
     position:fixed;
@@ -122,6 +122,9 @@ header{
 }
 
 /* PRODUCTOS */
+<h2 class="titulo-seccion">🛍️ Productos</h2>
+
+<div class="container">
 .container{
     display:flex;
     justify-content:center;
@@ -132,28 +135,35 @@ header{
 .producto{
     background:white;
     padding:20px;
-    border-radius:12px;
+    border-radius:15px;
     text-align:center;
     width:250px;
-    box-shadow:0 10px 20px rgba(0,0,0,0.2);
+    box-shadow:0 8px 20px rgba(0,0,0,0.1);
+    transition:0.3s;
 }
+
+.producto:hover{
+    transform: translateY(-10px) scale(1.02);
+}
+
 .producto img{
-    width:170px;
+    width:160px;
+    margin-bottom:10px;
 }
 button{
-    background:#2ecc71;
+    background: linear-gradient(135deg,#2ecc71,#27ae60);
     border:none;
     padding:10px;
-    border-radius:6px;
+    border-radius:10px;
     color:white;
     cursor:pointer;
     margin:5px;
     transition:0.3s;
+    font-weight:bold;
 }
 button:hover{
-    background:#27ae60;
+    transform: scale(1.05);
 }
-
 /* CARRITO */
 .carrito{
     position:fixed;
@@ -395,9 +405,146 @@ button:hover{
     border-radius:10px;
     transition:0.3s;
 }
+#bienvenida{
+    margin-right:15px;
+    font-weight:bold;
+    color:#d5f5e3;
+    background: rgba(255,255,255,0.15);
+    padding:6px 12px;
+    border-radius:10px;
+    backdrop-filter: blur(5px);
+    animation: aparecerBienvenida 0.8s ease;
+}
+
+@keyframes aparecerBienvenida{
+    from{
+        opacity:0;
+        transform: translateY(-10px);
+    }
+    to{
+        opacity:1;
+        transform: translateY(0);
+    }
+}
+@media (max-width:600px){
+
+    header{
+        flex-direction:column;
+        gap:10px;
+        text-align:center;
+    }
+
+    .container{
+        flex-direction:column;
+        align-items:center;
+        padding:20px;
+    }
+
+    .producto{
+        width:90%;
+    }
+
+    .carrito{
+        right:10px;
+        width:90%;
+    }
+
+    .pago-contenido{
+        width:95%;
+    }
+
+    #bienvenida{
+        font-size:14px;
+    }
+}
+.hero{
+    .hero{
+    min-height:350px;
+    padding:40px 20px;
+    background: linear-gradient(135deg,#27ae60,#145a32);
+    color:white;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+}
+
+.hero h1{
+    font-size:40px;
+    margin:0;
+}
+
+.hero p{
+    margin:10px 0;
+    font-size:18px;
+}
+
+.hero button{
+    background:white;
+    color:#27ae60;
+    border:none;
+    padding:10px 20px;
+    border-radius:10px;
+    cursor:pointer;
+}
+.footer{
+    background:#145a32;
+    color:white;
+    text-align:center;
+    padding:20px;
+    margin-top:40px;
+}
+.producto{
+    animation: fadeUp 0.6s ease;
+}
+
+@keyframes fadeUp{
+    from{
+        opacity:0;
+        transform: translateY(30px);
+    }
+    to{
+        opacity:1;
+        transform: translateY(0);
+    }
+}
+.titulo-seccion{
+    text-align:center;
+    font-size:28px;
+    margin-top:30px;
+    color:#145a32;
+}
+header{
+    background:#1e8449;
+    color:white;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+@media (max-width:600px){
+    .hero h1{
+        font-size:26px;
+    }
+
+    .hero p{
+        font-size:14px;
+    }
+
+    button{
+        width:100%;
+    }
+}
 </style>
 </head>
 <body>
+<footer class="footer">
+    <p>🌿 Menta y Amor © 2026</p>
+    <p>Hecho con amor en México</p>
+</footer>
+
 
 <!-- LOGIN -->
 <div class="login" id="login">
@@ -415,9 +562,24 @@ button:hover{
 </div>
 
 <header>
-<div class="logo">🌿 Menta y Amor</div>
-<div id="iconoCarrito" onclick="abrirCarrito()">🛒 <span id="contadorCarrito">0</span></div>
+    <div class="logo">🌿 Menta y Amor</div>
+
+    <div style="display:flex; align-items:center; gap:10px;">
+        <span id="bienvenida"></span>
+
+        <span id="iconoCarrito" onclick="abrirCarrito()">
+            🛒 <span id="contadorCarrito">0</span>
+        </span>
+
+        <button onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
 </header>
+
+<section class="hero">
+    <h1>🌿 Menta y amor huele tan bien como una flor</h1>
+    <p>Menta y amor un producto 100% natural</p>
+    <button onclick="window.scrollTo(0,600)">Ver productos</button>
+</section>
 
 <div class="container">
 <div class="producto">
@@ -545,9 +707,26 @@ function loginGoogle(){
         mostrarToast("Error con Google");
     });
 }
+// CERRAR SESION
+function cerrarSesion(){
+    firebase.auth().signOut().then(()=>{
+        mostrarToast("Sesión cerrada");
+    });
+}
 firebase.auth().onAuthStateChanged(user => {
     if(user){
         usuarioActual = user.email;
+
+        // sacar nombre limpio
+      let nombre = user.email.split("@")[0];
+nombre = nombre.replace(/[0-9._-]/g, "");
+
+        // primera letra mayúscula
+        nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+
+        document.getElementById("bienvenida").innerText =
+            `Bienvenido de vuelta, ${nombre}`;
+
         document.getElementById("login").style.display = "none";
     } else {
         document.getElementById("login").style.display = "flex";
@@ -556,7 +735,7 @@ firebase.auth().onAuthStateChanged(user => {
 
 // FUNCIÓN ENTRAR
 function entrar(){
-    
+
     console.log("Intentando login...");
 
     let correo = document.getElementById("correo").value;
