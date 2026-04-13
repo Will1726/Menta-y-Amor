@@ -1018,8 +1018,7 @@ function confirmarCompra(){
 
         accion();
 
-        guardarOrden("stripe"); // 👈 GUARDA LA ORDEN
-
+        guardarOrden("stripe"); // 
         return;
     }
 
@@ -1067,7 +1066,12 @@ function guardarOrden(tipoPago){
 
     let orden = {
         usuario: usuarioActual || "anonimo",
-        productos: carrito,
+        productos: carrito.map(p => ({
+  nombre: p.nombre,
+  cantidad: p.cantidad,
+  precio: p.precio,
+  total: p.precio * p.cantidad
+})),
         total: total,
         metodoPago: tipoPago, // "normal" o "stripe"
         fecha: Date.now(),
@@ -1100,72 +1104,38 @@ function avatarCorreo(correo){
 
 //  SOLO DEJAMOS ESTA FUNCIÓN (Firebase)
 function cargarReviews(){
+    let contenedor = document.getElementById("listaReviews");
 
-let contenedor=document.getElementById("listaReviews");
-
-db.collection("reviews")
+    db.collection("reviews")
 .orderBy("fecha","desc")
 .onSnapshot(snapshot=>{
 
-let html = "";
+    let html = "";
 
-snapshot.forEach(doc=>{
+    snapshot.forEach(doc=>{
+        let r = doc.data();
 
-let r=doc.data();
-let estrellas="⭐".repeat(r.estrellas);
-let likes = r.likes || 0;
-let puedeBorrar = (usuarioActual === r.correo || usuarioActual === "willduran620@gmail.com");
+        let estrellas = "⭐".repeat(Number(r.estrellas || 0));
+        let likes = r.likes || 0;
 
-html+=`
+        html += `
+        <div class="review" id="review-${doc.id}">
+            <img src="${avatarCorreo(r.correo)}">
+            <div>
+                <strong>${r.nombre}</strong>
+                <div class="estrellas">${estrellas}</div>
+                <p>${r.texto}</p>
 
-<div class="review" id="review-${doc.id}">
+                <button onclick="darLike('${doc.id}')">
+                    ❤️ ${likes}
+                </button>
+            </div>
+        </div>
+        `;
+    });
 
-<img src="${avatarCorreo(r.correo)}">
-
-<div>
-
-<strong>${r.nombre}</strong>
-
-<div class="estrellas">${estrellas}</div>
-
-<p>${r.texto}</p>
-
-<div class="respuestas">
-${(r.respuestas || [])
-.sort((a,b)=>a.fecha-b.fecha)
-.map(resp =>`
-<p>
-<strong style="color:${resp.usuario.includes('Menta y Amor') ? '#27ae60' : '#000'}">
-${resp.usuario}:
-</strong> ${resp.texto}
-</p>
-`).join("")}
-</div>
-
-<div>
-<input id="resp-${doc.id}" placeholder="Responder...">
-<button onclick="responderReview('${doc.id}')">Responder</button>
-</div>
-
-<button 
-class="like-btn ${r.likedBy && r.likedBy.includes(usuarioActual) ? 'liked' : ''}" 
-onclick="darLike('${doc.id}')">
-❤️ ${likes}
-</button>
-
-${puedeBorrar ? `<button onclick="animarBorrado('${doc.id}','${r.correo}')">Eliminar</button>` : ""}
-
-</div>
-</div>
-`;
-
+    contenedor.innerHTML = html;
 });
-
-contenedor.innerHTML = html;
-
-});
-}
-
 function borrarReview(id,correo){
 
 if(usuarioActual !== correo && usuarioActual !== "willduran620@gmail.com"){
@@ -1319,7 +1289,7 @@ db.collection("reviews").add({
 }
 
 // CARGAR AL INICIO
-setTimeout(cargarReviews,1000);
+window.addEventListener("DOMContentLoaded", cargarReviews);
 </script>
 <!-- MODAL CONFIRMACIÓN PAGO -->
 <div id="confirmacion" class="modalPago">
