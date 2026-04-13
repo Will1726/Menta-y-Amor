@@ -109,13 +109,17 @@ header{
 
 /* PRODUCTOS */
 .container{
+    background:#e8f8f1;
+    border-radius:20px;
+    margin-top:-60px;
+    padding:60px 20px;
     display:flex;
     justify-content:center;
     flex-wrap:wrap;
     gap:40px;
-    padding:40px;
-    max-width:1200px;
-    margin:auto;
+}
+.container, .reseñas{
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
 }
 .producto{
     background:white;
@@ -242,7 +246,7 @@ button:hover{
 
 /* RESEÑAS */
 .reseñas{
-    background:white;
+        background:#f1fdf7;
     padding:40px;
     text-align:center;
 }
@@ -453,7 +457,19 @@ button:hover{
     align-items:center;
     text-align:center;
 }
+.hero{
+    position:relative;
+}
 
+.hero::after{
+    content:"";
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:100%;
+    height:100px;
+    background: linear-gradient(to bottom, transparent, #e8f8f1);
+}
 .hero h1{
     font-size:50px;
     font-weight:900;
@@ -472,7 +488,7 @@ button:hover{
     cursor:pointer;
 }
 .footer{
-    background:#145a32;
+    background:#1b5e3a;
     color:white;
     text-align:center;
     padding:20px;
@@ -535,6 +551,21 @@ h3{
 p{
     font-size:18px;
 }
+.seccion-suave{
+    height:80px;
+    background: linear-gradient(to bottom, transparent, #e8f8f1);
+}
+.container{
+    margin-top:-80px;
+}
+
+.reseñas{
+    margin-top:40px;
+    border-radius:20px;
+}
+.producto:hover{
+    transform: translateY(-10px) scale(1.03);
+}
 </style>
 </head>
 <body>
@@ -573,6 +604,8 @@ p{
     <p>Menta y amor un producto 100% natural</p>
     <button onclick="window.scrollTo(0,600)">Ver productos</button>
 </section>
+
+<div class="seccion-suave"></div>
 
 <div class="container">
 <div class="producto">
@@ -652,6 +685,12 @@ p{
 
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
+window.onclick = function(e){
+    let modal = document.getElementById("modalProducto");
+    if(e.target === modal){
+        cerrarModalProducto();
+    }
+}
 let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 let usuarioActual = null;
 
@@ -675,7 +714,21 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+//pago
+function pagar(){
+    mostrarToast("Pago simulado realizado ✅");
 
+    carrito = [];
+    localStorage.removeItem("carrito");
+
+    document.getElementById("contadorCarrito").innerText = "0";
+
+    document.getElementById("lista").innerHTML = "";
+    document.getElementById("total").innerText = "";
+
+    cerrarCarrito(); // IMPORTANTE
+    cerrarPago();
+}
 // Admin
 function esAdmin(){
     return usuarioActual === "willduran620@gmail.com";
@@ -905,17 +958,7 @@ function irPago(){
 
     let total = carrito.reduce((acc,p)=>acc + (p.precio * p.cantidad),0);
 
-    let resumen = carrito.map(p => 
-        `${p.nombre} x${p.cantidad} = $${p.precio * p.cantidad}`
-    ).join("\n");
-
-    let confirmar = confirm(
-        "Resumen de compra:\n\n" +
-        resumen +
-        "\n\nTotal: $" + total +
-        "\n\n¿Confirmar compra?"
-    );
-
+    let confirmar = confirm("Total: $" + total + "\n¿Confirmar compra?");
     if(!confirmar) return;
 
     mostrarToast("Pago procesado correctamente 💳✨");
@@ -924,7 +967,11 @@ function irPago(){
     localStorage.removeItem("carrito");
 
     document.getElementById("contadorCarrito").innerText = "0";
+    document.getElementById("lista").innerHTML = "";
+    document.getElementById("total").innerText = "";
 
+    cerrarCarrito(); 
+window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function pagarStripe(){
 
@@ -969,7 +1016,7 @@ db.collection("reviews")
 .orderBy("fecha","desc")
 .onSnapshot(snapshot=>{
 
-contenedor.innerHTML="";
+let html = "";
 
 snapshot.forEach(doc=>{
 
@@ -978,7 +1025,7 @@ let estrellas="⭐".repeat(r.estrellas);
 let likes = r.likes || 0;
 let puedeBorrar = (usuarioActual === r.correo || usuarioActual === "willduran620@gmail.com");
 
-contenedor.innerHTML+=`
+html+=`
 
 <div class="review" id="review-${doc.id}">
 
@@ -991,6 +1038,7 @@ contenedor.innerHTML+=`
 <div class="estrellas">${estrellas}</div>
 
 <p>${r.texto}</p>
+
 <div class="respuestas">
 ${(r.respuestas || [])
 .sort((a,b)=>a.fecha-b.fecha)
@@ -1008,7 +1056,7 @@ ${resp.usuario}:
 <button onclick="responderReview('${doc.id}')">Responder</button>
 </div>
 
-<button id="like-${doc.id}" 
+<button 
 class="like-btn ${r.likedBy && r.likedBy.includes(usuarioActual) ? 'liked' : ''}" 
 onclick="darLike('${doc.id}')">
 ❤️ ${likes}
@@ -1017,15 +1065,14 @@ onclick="darLike('${doc.id}')">
 ${puedeBorrar ? `<button onclick="animarBorrado('${doc.id}','${r.correo}')">Eliminar</button>` : ""}
 
 </div>
-
 </div>
-
 `;
 
 });
 
-});
+contenedor.innerHTML = html;
 
+});
 }
 
 function borrarReview(id,correo){
