@@ -1009,19 +1009,24 @@ function irPago(){
 }
 function confirmarCompra(){
 
-    // 🔵 CASO 1: Stripe (si hay acción pendiente)
+    // 💳 Stripe
     if(window.accionConfirmada){
         let accion = window.accionConfirmada;
         window.accionConfirmada = null;
 
         cerrarConfirmacion();
 
-        accion(); // redirige a Stripe
+        accion();
+
+        guardarOrden("stripe"); // 👈 GUARDA LA ORDEN
+
         return;
     }
 
-    // 🟢 CASO 2: Pago normal
+    // 💵 Pago normal
     mostrarToast("Pago procesado correctamente 💳✨");
+
+    guardarOrden("normal"); // 👈 GUARDA LA ORDEN
 
     carrito = [];
     localStorage.removeItem("carrito");
@@ -1055,6 +1060,24 @@ function pagarStripe(){
     window.accionConfirmada = () => {
         window.location.href = "https://buy.stripe.com/test_5kQdR25uHanz3EK8Fr6c001";
     };
+}
+function guardarOrden(tipoPago){
+
+    let total = carrito.reduce((acc,p)=>acc + (p.precio * p.cantidad),0);
+
+    let orden = {
+        usuario: usuarioActual || "anonimo",
+        productos: carrito,
+        total: total,
+        metodoPago: tipoPago, // "normal" o "stripe"
+        fecha: Date.now(),
+        estado: "pagado"
+    };
+
+    // guardar en Firebase
+    db.collection("ordenes").add(orden);
+
+    console.log("Orden guardada:", orden);
 }
 // --- RESEÑAS CON TROLEO ---
 const fotosTroleo=[
