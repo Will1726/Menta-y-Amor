@@ -566,6 +566,46 @@ p{
 .producto:hover{
     transform: translateY(-10px) scale(1.03);
 }
+.modalPago{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+.modalPago-contenido{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    width:90%;
+    max-width:400px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modalPago-contenido button{
+    margin:5px;
+    padding:10px 15px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.modalPago-contenido button:first-of-type{
+    background:#2ecc71;
+    color:white;
+}
+
+.modalPago-contenido button:last-of-type{
+    background:#e74c3c;
+    color:white;
+}
 </style>
 </head>
 <body>
@@ -951,16 +991,36 @@ function cerrarModalProducto(){
 // PAGO
 function irPago(){
 
-    if(carrito.length==0){
+    if(carrito.length == 0){
         mostrarToast("No hay productos en el carrito");
         return;
     }
 
     let total = carrito.reduce((acc,p)=>acc + (p.precio * p.cantidad),0);
 
-    let confirmar = confirm("Total: $" + total + "\n¿Confirmar compra?");
-    if(!confirmar) return;
+    let resumen = carrito.map(p => 
+        `${p.nombre} x${p.cantidad} = $${p.precio * p.cantidad}`
+    ).join("<br>");
 
+    document.getElementById("resumenCompra").innerHTML =
+        resumen + "<br><br><b>Total: $" + total + "</b>";
+
+    document.getElementById("confirmacion").style.display = "flex";
+}
+function confirmarCompra(){
+
+    // 🔵 CASO 1: Stripe (si hay acción pendiente)
+    if(window.accionConfirmada){
+        let accion = window.accionConfirmada;
+        window.accionConfirmada = null;
+
+        cerrarConfirmacion();
+
+        accion(); // redirige a Stripe
+        return;
+    }
+
+    // 🟢 CASO 2: Pago normal
     mostrarToast("Pago procesado correctamente 💳✨");
 
     carrito = [];
@@ -970,8 +1030,13 @@ function irPago(){
     document.getElementById("lista").innerHTML = "";
     document.getElementById("total").innerText = "";
 
-    cerrarCarrito(); 
-window.scrollTo({ top: 0, behavior: 'smooth' });
+    cerrarConfirmacion();
+    cerrarCarrito();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function cerrarConfirmacion(){
+    document.getElementById("confirmacion").style.display = "none";
 }
 function pagarStripe(){
 
@@ -982,11 +1047,14 @@ function pagarStripe(){
 
     let total = carrito.reduce((acc,p)=>acc + (p.precio * p.cantidad),0);
 
-    let confirmar = confirm("Total a pagar: $" + total + " MXN\n\n¿Ir a pagar con tarjeta?");
+    document.getElementById("resumenCompra").innerHTML =
+        "Total a pagar con tarjeta: <b>$" + total + " MXN</b>";
 
-    if(!confirmar) return;
+    document.getElementById("confirmacion").style.display = "flex";
 
-    window.location.href = "https://buy.stripe.com/test_5kQdR25uHanz3EK8Fr6c001";
+    window.accionConfirmada = () => {
+        window.location.href = "https://buy.stripe.com/test_5kQdR25uHanz3EK8Fr6c001";
+    };
 }
 // --- RESEÑAS CON TROLEO ---
 const fotosTroleo=[
@@ -1230,6 +1298,21 @@ db.collection("reviews").add({
 // CARGAR AL INICIO
 setTimeout(cargarReviews,1000);
 </script>
+<!-- MODAL CONFIRMACIÓN PAGO -->
+<div id="confirmacion" class="modalPago">
+  <div class="modalPago-contenido">
+    
+    <h2>🧾 Confirmar compra</h2>
+
+    <div id="resumenCompra"></div>
+
+    <div style="margin-top:15px;">
+      <button onclick="confirmarCompra()">Confirmar</button>
+      <button onclick="cerrarConfirmacion()">Cancelar</button>
+    </div>
+
+  </div>
+</div>
 <!-- TODO el contenido -->
 
 <footer class="footer">
