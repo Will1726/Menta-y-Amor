@@ -652,7 +652,7 @@ p{
 <h3>Aromatizante 30ml</h3>
 <img src="producto30ml.png">
 <p>$50 MXN</p>
-<button onclick="verProducto('Aromatizante 30ml',50,['img1.jpeg','img2.jpeg','img3.jpeg','img4.jpeg'])">Ver producto</button>
+<button onclick="verProducto('Aromatizante 30ml',50,['img1.jpg','img2.jpg','img3.jpg'])">Ver producto</button>
 <button onclick="agregar('Aromatizante 30ml',50)">Agregar</button>
 </div>
 
@@ -660,9 +660,8 @@ p{
 <h3>Aromatizante 1L</h3>
 <img src="producto1l.png">
 <p>$150 MXN</p>
-<button onclick="verProducto('Aromatizante 1L',150,['producto1l.png'])">Ver producto</button>
+<button onclick="verProducto('Aromatizante 1L',150,['img4.jpg','img5.jpg','img6.jpg'])">Ver producto</button>
 <button onclick="agregar('Aromatizante 1L',150)">Agregar</button>
-</div>
 </div>
 
 <div class="carrito" id="carrito">
@@ -1022,10 +1021,10 @@ function confirmarCompra(){
         return;
     }
 
-    // 💵 Pago normal
+    //  Pago normal
     mostrarToast("Pago procesado correctamente 💳✨");
 
-    guardarOrden("normal"); // 👈 GUARDA LA ORDEN
+    guardarOrden("normal"); // Guarda la orden automaticamente
 
     carrito = [];
     localStorage.removeItem("carrito");
@@ -1083,7 +1082,7 @@ function guardarOrden(tipoPago){
 
     console.log("Orden guardada:", orden);
 }
-// --- RESEÑAS CON TROLEO ---
+
 const fotosTroleo=[
     "https://sl.bing.net/jOZ3IVmuBr2",
     "https://sl.bing.net/g1t14nmz7Ia",
@@ -1154,7 +1153,7 @@ db.collection("reviews").doc(id).delete()
 
 }
 
-// 🔥 BORRAR CON ANIMACIÓN
+//BORRAR CON ANIMACIÓN 
 function animarBorrado(id,correo){
 
 if(usuarioActual !== correo && usuarioActual !== "willduran620@gmail.com"){
@@ -1182,7 +1181,7 @@ setTimeout(()=>{
 
 }
 
-// LIKE (sin repetir)
+// Likes
 function darLike(id){
 
     let user = usuarioActual || "anonimo";
@@ -1307,7 +1306,6 @@ window.addEventListener("DOMContentLoaded", cargarReviews);
 
   </div>
 </div>
-<!-- TODO el contenido -->
 
 <footer class="footer">
     <p>🌿 Menta y Amor © 2026</p>
